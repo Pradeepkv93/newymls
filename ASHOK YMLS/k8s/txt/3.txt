@@ -1,0 +1,128 @@
+so a pod is something like a shell or
+case around a group of similar things
+we can compare our kubernetes parts to
+this
+the p seeds can be compared to
+containers
+and the p part can be compared to our
+kubernetes pod
+
+so the kubernetes pod is an encapsulated
+layer for our containers
+
+a pod can have one or more containers
+so when we want to run our application
+we will run it in the containers just
+like we did it in docker
+but in kubernetes the container alone
+cannot be deployed and it needs to be
+wrapped up in a pod
+
+you might be wondering why we need this
+extra layer of pod whenever application
+runs in a container
+in most cases each pod will be having
+only one container
+
+let us see a use case where we need
+multiple containers
+
+let's say our application is running in
+a container and it is getting
+configuration from a shared volume
+and we want to update the configuration
+in the volume for every one hour by
+pulling it from github
+
+we can hand over the refresh part to
+separate container without disturbing
+the main container
+
+this refresh service will pull the
+configuration from the github for every
+one hour and updates the volume
+often this helping container is called a
+sidecar container
+
+we can compare this sidecar container to
+the extra carrier of the bike
+so how do we manage these two containers
+
+if there is no pod
+if there is no pod these two containers
+may get deployed to different nodes
+so we must make sure all related
+containers go on to the same node when
+we have multiple nodes in our cluster
+and we need to create networks manually
+to establish communication between these
+containers
+
+and when we delete our main container we
+need to delete the helper container
+manually to save the resources
+and when we create it back we should add
+the helper container too
+
+with pods everything is taken care of
+all the containers in the pod will share
+the same network and storage
+when a part is deleted all the
+containers in the pod gets deleted
+
+and when the pod is created all the
+containers in the pod will be created
+
+so a pod is a group of one or more
+containers with share storage and
+network resources
+
+if we want to scale our application that
+is when the load increases if we want to
+increase the number of instances of our
+application
+
+we shouldn't increase the number of
+containers in the same pod
+but we should increase the number of
+pods
+
+when pods are created each part is
+ascend a unique ip address and range of
+ports
+
+with this we can run two applications on
+the same port in the same node
+in fact this is another advantage of
+having ports
+
+every container in a pod shares the
+network space including the ip address
+and network ports
+
+inside a pod the containers that belong
+to the same pod can communicate with
+each other using localhost
+this is because they are in the same
+network
+
+containers that want to interact with
+the container running in a different
+pod can use ip address to communicate
+
+now let us see how to create a pod let's
+go back to the terminal
+
+apiVersion: v1
+kind: Pod
+metadata:
+  name: nginx-pod1
+  labels:
+    team: integrations
+    app: todo
+spec:
+  containers:
+    - name: nginx-container
+      image: nginx:latest
+      ports:
+        - containerPort: 80

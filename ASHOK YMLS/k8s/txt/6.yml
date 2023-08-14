@@ -1,0 +1,260 @@
+
+in the previous section of the series we
+deployed nginx to kubernetes and we
+could able to access it with a stable ip
+address using services
+
+in this section we will be discussing
+how we can access the same nginx with
+ingress and how to secure our
+applications with https using ingress
+
+
+as we discussed one option to expose our
+applications outside of the cluster is
+using nodeport services
+
+with notepad services we are opening a
+port on each node and exposing it to the
+outside of the cluster
+
+the good thing with this is user can
+call any node ip in the cluster using
+that port and the request gets forwarded
+to the correct pod but the bad part is
+the port's value must be between 30 000
+to 32 767
+and node ip may change on restarting the
+node and it's not secured to open ports
+on the node
+
+to solve these problems we have seen
+another option to expose our application
+to the outside world which is load
+balancer service
+this is preferred way to expose our
+application
+but the bad part with this is it only
+works if you are operating in a cloud
+hosted environment like google
+kubernetes engine or amazon elastic
+kubernetes service etc if you are on
+bare metal we need to set up the entry
+point like proxy server and whenever we
+create a service of type load balancer a
+new load balancer gets created in the
+cloud please note that we have to pay
+for each load balancer that is created
+so when we have multiple services it
+will increase the cost and difficult to
+manage all these load balancers let's
+say we have two applications running one
+is a simple to do application developed
+with react.js and the other one is to do
+api built with springboard when we
+expose these two applications with the
+load balancer service type
+two load balancers are created in the
+cloud and we need to pay for these two
+load balancers
+
+so what if there is a way if you have
+only one load balancer for all the
+requests and route it to different
+services based on the host or path
+that's where ingress comes into the
+picture in ingress we declare which
+request should go to which service so we
+write an ingress rule that declares how
+you would like users to be routed to a
+service
+
+in this example we are routing todo.com
+to to do ui service and todo.com api 2
+to do api service
+
+we call these mappings as ingress rules
+but
+
+writing these ingress rules is not
+enough there must be some component that
+reads these rules and process them
+that component is called ingress
+controller without ingress controller
+just ingress rules don't do anything on
+their own
+
+so to process ingress rules we must
+deploy an ingress controller into our
+cluster to watch for these declarations
+and act upon them so now whenever we
+make a request ingress controllers
+inspect http request and direct that
+request to the correct parths based on
+the ingress rule that we defined
+
+for example
+when we access to-do.com it first hits
+the load balancer then it goes to the
+ingress controller pod and reads the
+ingress rule and decides which service
+to call
+
+once it decides the service to call it
+forwards the request to the service and
+finally it reaches the desired ports and
+same thing happens when we call to do
+dot com
+api
+
+now we don't need any node port or load
+balancer services as ingress controller
+is a pod and can access cluster ip
+services so all we need to do is define
+cluster ip services for our applications
+
+
+nginx-deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: nginx
+  annotations:
+    kubernetes.io/change-cause: "Updating to alipine version"
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      name: nginx-pod
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx-container
+          image: nginx:alpine
+          ports:
+            - containerPort: 80
+
+nginx-service.yaml
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: nginx
+spec:
+  selector:
+    app: nginx
+  ports:
+    - port: 8082
+      targetPort: 80
+
+nginx-ingress.yaml
+
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+spec:
+  tls:
+    - secretName: nginx-demo-com-tls
+      hosts:
+        - nginx-demo.com
+  rules:
+    - host: nginx-demo.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: nginx-service
+                port:
+                  number: 8082
+
+
+
+todo-ui-api.yaml
+
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-api
+  namespace: todo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: todo-api
+  template:
+    metadata:
+      name: todo-api-pod
+      labels:
+        app: todo-api
+    spec:
+      containers:
+        - name: todo-api
+          image: pavanelthepu/todo-api:1.0.2
+          ports:
+            - containerPort: 8082
+          env:
+            - name: "spring.data.mongodb.uri"
+              value: "mongodb+srv://root:321654@cluster0.p9jq2.mongodb.net/todo?retryWrites=true&w=majority"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-api-service
+  namespace: todo
+spec:
+  selector:
+    app: todo-api
+  ports:
+    - name: http
+      protocol: TCP
+      port: 8080
+      targetPort: 8082
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: todo-ui
+  namespace: todo
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: todo-ui
+  template:
+    metadata:
+      name: todo-ui-pod
+      labels:
+        app: todo-ui
+    spec:
+      containers:
+        - name: todo-ui
+          image: pavanelthepu/todo-ui:1.0.2
+          ports:
+            - containerPort: 80
+          env:
+            - name: "REACT_APP_BACKEND_SERVER_URL"
+              value: "http://todo.com/api"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: todo-ui-service
+  namespace: todo
+spec:
+  selector:
+    app: todo-ui
+  ports:
+    - name: http
+      port: 3001
+      targetPort: 80

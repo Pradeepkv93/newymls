@@ -1,0 +1,177 @@
+
+definition of kubernetes
+kubernetes is an open source system for
+automating deployment scaling and
+management of containerized applications
+
+
+
+statement one
+let's say we have containerized our
+application and deployed it in a node
+when i say node it's a physical system
+like your laptop
+or virtual machine like aws ec2 where
+docker is installed
+what if there is an error in the
+container and the container is stopped
+or what if the node itself is crashed
+can we access our service no
+we are talking about one container here
+in real time especially when you move
+from monolith to microservices
+there will be hundreds even thousands of
+containers running on multiple nodes
+we never know when and which container
+goes down can we monitor it manually and
+restart our stopped containers
+probably we can do that when we have a
+couple of containers but it's impossible
+when we have thousands of containers
+so what if there is a way to monitor the
+health of each container and load and
+automatically bring them back when they
+go down
+
+isn't it amazing without any manual
+intervention this is called self healing
+or resilience healing by itself that's
+where kubernetes comes into the picture
+
+kubernetes checks or monitors the health
+of each container and node and brings
+them back when they go down
+so we will not face any downtime
+we call this i availability meaning our
+application is ready to serve request 24
+by 7 if not
+99.99 of the time
+
+now let's look at the problem statement
+well we deployed our application and
+everything is working great
+and let us assume your application is
+working great for 20 requests per second
+what your application gets 100 requests
+per second 1000 requests per second i am
+sure that it cannot handle that load
+what if there is a way to replicate your
+same application into multiple
+containers if required across multiple
+nodes and put a load balancer in front
+of those containers so any request made
+goes to the load balancer and it
+distributes the load among multiple
+containers now if an application can
+handle that load as your load is shared
+by multiple containers even one step
+ahead what if there is a way to increase
+the number of containers if the load
+increases and decrease the number of
+containers if the load decreases this is
+called scaling kubernetes can do that
+smart job for us kubernetes can scale
+our application based on the load
+not only scaling containers but it can
+scale nodes also
+
+meaning if there are multiple containers
+are running in a node and while creating
+a new container if there are not enough
+resources like cpu and ram kubernetes
+can automatically spin up another
+node for us
+and kubernetes can run our containers in
+a node based on the resources available
+this is called automatic bin packing
+and if there is no load it can remove
+the node which can save lot of cost
+also if a node crashes it can move the
+container to the ld and running node
+
+we can also tell kubernetes that how
+much resources a container should use
+
+
+
+let's say you are working on a product
+and you're deploying the enhancement
+multiple times a day what happens when
+your deployment is going on your old
+container gets deleted and a new
+container gets created in the gap of
+deleting and creating the container your
+application will be down which is a bad
+thing of course
+
+if you are aware of rolling updates you
+can understand the fix for this
+
+
+
+instead of deleting all containers at
+once and creating them again
+with rolling deployments we can replace
+the containers one by one
+that way your application will still
+serve the request without any downtime
+and kubernetes can do that for us
+with kubernetes we can make rolling
+deployments
+
+we can also upgrade a percentage of
+containers which is called canary
+deployments
+
+
+now let's look at the problem statement
+
+four let's say we have our application
+running with version one what if we want
+to deploy a new version of our
+replication with just a single command
+we call this rolling out a new version
+or what if you want to roll back to an
+older version if there is an error in
+the near version
+
+kubernetes can take care of that
+automated rollout and roll backs with
+simple commands
+
+
+with kubernetes we can deploy and update
+secrets and application configuration
+without rebuilding our image and without
+exposing secrets in your stack
+configuration
+
+orchestrates containers is called
+container orchestration system in 2014
+google open sourced this project with
+the name kubernetes and now it is being
+maintained by cncf there are different
+orchestration tools available in the
+market the first one is docker swarm
+this is native to docker which lacks
+some advanced features for complex
+applications kubernetes by google with
+more advanced features mesos by apache
+which is very difficult to set up ecs
+which is specific to aws out of which
+kubernetes is most popular with more
+advanced features all cloud providers
+have native support to kubernetes docker
+is a container tool that creates the
+containers whereas kubernetes is an
+orchestration tool that manages the
+containers kubernetes use docker to host
+the applications in the form of
+containers not only docker any other
+tools are also supported by kubernetes
+like rocket cryo etc kubernetes is a
+greek word for hell's man helmsman
+meaning a person who steals a ship or
+boat which carries the containers this
+is the reason the kubernetes logo
+represents the steering of the ship w

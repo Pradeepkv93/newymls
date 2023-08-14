@@ -1,0 +1,17 @@
+
+---
+- hosts: all
+  tasks:
+    - name: Create file in all host Nodes
+      file:
+        path: /home/ansible/hello.txt
+        state: touch
+
+# write a  playbook to copy a content into a file
+
+---
+- hosts: all
+  tasks:
+    - name: Copy content to a file
+      copy: content="hello world \n" dest=/home/ansible/hello.txt
+        

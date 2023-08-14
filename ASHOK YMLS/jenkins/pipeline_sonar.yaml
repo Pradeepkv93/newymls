@@ -1,0 +1,26 @@
+pipeline{
+    agent any
+    environment {
+        PATH = "$PATH:/opt/apache-maven-3.8.8/bin"
+    }
+    stages{
+        stage('GetCode'){
+            steps{
+                git"https://github.com/ashokitschool/maven-web-app.git"
+            }
+        }
+        stage('Build'){
+            steps{
+               sh 'mvn clean package'
+            }
+        }
+        stage('SonarQube Analysis'){
+            steps{
+            withSonarQubeEnv('sonarqube-7.8'){           # in configuresystem whatever sonar name you used= sonarqube-7.8
+                sh "mvn sonar:sonar"
+            }   
+            }
+        }
+    }
+}
+

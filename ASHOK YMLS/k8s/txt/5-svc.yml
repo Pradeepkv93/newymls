@@ -1,0 +1,243 @@
+hey guys welcome back to the kubernetes
+series
+so far we have deployed nginx to
+kubernetes using deployments
+also we could able to access deployed
+nginx with code forwarding for debugging
+purposes
+
+but how do we access it from the
+production environment as an end user
+that's our topic for this chapter
+in this chapter we will be learning what
+are the kubernetes services what are the
+advantages of using kubernetes services
+and the different types of kubernetes
+services 
+
+we have our nginx up and running with
+two replicas meaning two pods
+and when a pod is created a new cluster
+private ip addresses assigned to that
+port
+this is done by the kubeproxy agent
+running on the node as we discussed in
+the kubernetes architecture section of
+this series
+
+these pods are created in a separate
+network and we cannot reach these pods
+from outside of the cluster
+only from within the cluster we can
+access these parts
+
+let's say we want to connect a service
+running in a pod from another pod
+we can connect to it with the ip address
+of the pod
+but we cannot access the same service
+from outside of the cluster with the
+same ip address
+
+even within the cluster we cannot rely
+on the ip addresses of the pod
+
+let us see why
+as we use deployment to create these
+pods these pods create and destroy
+dynamically meaning if we decrease the
+replica account extra pod will be
+deleted and if we increase the replica
+count and new port will be created
+also if you change the image version all
+the pods get deleted and new pods get
+created
+
+and whenever the pod is recreated a new
+ip address is assigned to that pod
+so pods are non-permanent resources and
+their ip address keeps on changing
+and obviously when we try to access with
+the old ip it fails to connect
+
+therefore we cannot rely on their ips to
+communicate if you want to access the
+services running in a pod
+
+but it's pretty common use case where we
+need to access the application on the
+internet or from other services
+especially in microservices world
+port forwarding is just for debugging
+purposes to access on our local mission
+
+it's not publicly available
+
+that's where kubernetes services comes
+into picture
+
+the main objective of the services is to
+abstract the pod ip address from end
+user
+
+when a service is created an ip address
+is assigned to that service
+and this ip address doesn't change as
+long as the service exists
+
+so users can call a single stable ip
+address instead of calling each pod
+individually
+and the service forward the request to
+pods
+
+now even if pod ip changes it doesn't
+matter as the service will take care of
+routing to appropriate pods
+services are not created on any node
+unlike pods
+
+let us see another use case of services
+
+now we have two pods of same
+application which is nginx
+
+in real time we will have many replicas
+of the same application
+in that case
+
+when we make a request to which pod
+does our request go
+service will take care of load balancing
+meaning service provides load balancing
+
+when you have pod replicas it picks a
+pod randomly and forwards the request to
+it
+
+so we don't need to worry about load
+balancing when we have multiple pods
+running up the same application
+
+services also offer other advantages
+like service discovery and zero downtime
+deployments
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: nginx
+spec:
+  selector:
+    app: nginx
+  ports:
+    - port: 8082
+      targetPort: 80
+
+
+
+and in the spec we should give the ports
+information on which we can access this
+service
+
+so for the service ports is the
+mandatory attribute
+and this is an array
+
+port: 8082
+
+so this port specifies the port number
+on which the service object will be
+receiving request
+and this is arbitrary value meaning we
+can give any valid port number
+
+also we should give target port
+which specifies the port number of the
+container in the port
+this can be 80 as our nginx is running
+on port 80 in the pod
+
+so as a summary port is the port on
+which service will receive the request
+
+and the target port is the port on which
+the container is running
+here our nginx is running on 80 port in
+the container
+
+there are different types of services
+available let's see them one by one with
+their use cases
+the first one is cluster ip service
+this type of service exposes the ports
+on an ip that is internal to the cluster
+meaning this ip cannot be accessed
+outside of the cluster
+
+this type of service is useful when you
+don't want to expose your application to
+the outside world but all the pods
+inside the cluster can access it example
+your database
+
+service type can be given with type
+attribute under the specs section so
+type is cluster ip
+
+this is the default service meaning if
+we don't give any type it is treated as
+cluster ip service
+
+well
+
+now we have our service ready but wait a
+second we are missing something here
+we discussed that service is an
+abstraction for the set of pods meaning
+if we want to communicate with our pods
+we should communicate through service
+instead of communicating directly with
+pods
+
+but if there are hundreds of card how
+does this service know to which parts it
+should forward request
+
+you guessed it correct using labels
+just like kubernetes deployment works as
+we discussed
+
+in the specs section we should give the
+labels with selector attribute
+here we should give the pod labels that
+we defined as part of the deployment
+
+as you can see here we gave app: nginx
+
+label while creating the deployment so
+let's give the same so that it matches
+those pods
+
+please note that when we have multiple
+labels defined as selectors all the
+labels should match with the pod labels
+not just one so let's roll back this as
+we have only one pod label
+
+
+NODE PORT
+apiVersion: v1
+kind: Service
+metadata:
+  name: nginx-service
+  namespace: nginx
+spec:
+  type: NodePort
+  selector:
+    app: nginx
+  ports:
+    - port: 8082
+      targetPort: 80
+      nodePort: 30000

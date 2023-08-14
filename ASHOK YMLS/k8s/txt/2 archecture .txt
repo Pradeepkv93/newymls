@@ -1,0 +1,281 @@
+
+
+in the introduction of kubernetes
+section we have seen the different
+features of kubernetes like monitoring
+self healing high availability load
+balancing auto scaling automatic bin
+packing rolling and canary deployments
+automatic roll out and roll back secret
+and configuration management etc
+
+but how kubernetes is doing all this
+stuff
+
+
+when we deploy an application in a
+container we need a mission to run those
+containers
+
+those missions can be virtual or
+physical
+in the kubernetes world we call these
+missions as nodes more specifically
+worker nodes as most of the work is done
+by these nodes
+
+generally there will be multiple worker
+nodes so that if one node goes down
+containers can be run in other nodes
+also we can run the same application on
+multiple nodes to shade the load
+
+we call these set of worker nodes as
+data plane
+
+now there should be someone who should
+manage these worker nodes
+
+like if one node goes down moving the
+containers to a healthy node etc this
+controlling part is taken care by
+another node called master node or
+control plane
+
+in real time there will be more than one
+master node for the fault tolerance
+worker nodes and master nodes together
+form a cluster
+
+so a kubernetes cluster consists of a
+set of worker missions called nodes that
+run the containerized applications and a
+set of master nodes which manages these
+worker nodes
+
+
+
+let us start with master node components
+master node consists of kubernetes
+components that control the cluster
+along with the data about the cluster
+state and configuration the first
+component is kube api server
+there should be some way for us to
+interact with kubernetes cluster to use
+
+it the api server is a component of
+kubernetes control plane that exposes
+the kubernetes api
+
+we as end user can interact with these
+apis directly or through cli and sdk
+which again calls the same apis we can
+call this api server as the front end
+for the kubernetes control plane
+so with this api we can instruct
+kubernetes to do some operations like
+scheduling pod get the list of pods etc
+
+
+
+
+next comes etcd there should be some
+storage where we will track all the
+nodes we have in the cluster what pods
+or containers we have and their state
+etc
+
+etcd is a simple key value store used to
+store clustered data
+
+it is recommended to have a backup plan
+for the etcd so that we can restore on
+any failures
+
+it is only accessible from the api
+server for security reasons
+no other component can interact directly
+
+with etcd except api server
+this etcd has a wonderful feature called
+watch api
+this watch waits for the changes to keys
+by continuously watching and sends those
+key updates back to the client
+
+so if any change happens in the etcd
+records kts api will respond accordingly
+
+next component is kube scheduler
+it helps to schedule the pods on the
+various nodes based on the resource
+utilization for example
+
+if our application needs 2 gb of memory
+and 2 cpu cores then the pods for that
+application will be scheduled on a node
+with at least those resources
+factors taken into account for
+scheduling decisions include hardware
+and software constraints user
+specifications etc
+
+once the node is selected by the
+scheduler it will call the apa server
+
+next component is kube control manager
+when a change in a service configuration
+occurs for example replacing the image
+from which the pods are running or
+changing parameters in the configuration
+ml file the controller spots the change
+and starts working towards the new
+desired state
+
+there are different controllers
+available like replication controller
+node controller endpoint controller etc
+
+replication control ensures the current
+number of ports are running in the
+cluster
+
+whereas node controller monitors the
+health of each node and notifies the
+cluster when nodes come online or
+becomes unresponsive
+
+endpoint controller connects the pods
+and services to populate the endpoint
+object
+
+
+
+these controllers takes the help of the
+scheduler to manage pods
+
+these all components are needed in a
+node to call a node as master node
+
+now let us look at node components
+
+node components run on every node
+maintaining running pods and providing
+the kubernetes runtime environment
+
+the first node component is container
+runtime
+
+to run a container from an image we need
+a container runtime there are many
+container runtimes available in the
+market like racket continuity docker etc
+docker is the most popular container
+runtime
+is responsible for running continuous
+
+the next node component is kubelet this
+is an agent that runs on each worker
+node in the cluster
+it makes sure that the containers are
+running in a pod
+
+it regularly checks the new or modified
+port specification from the api server
+and ensuring the pods and their
+containers are healthy and running in
+the desired state
+
+the kubelet doesn't manage the
+containers that are not created by
+kubernetes it makes sure that containers
+are running in a pod
+
+the kubelet is also responsible for
+registering a node with a kubernetes
+cluster and sending events port status
+and resource utilization reports to the
+master server
+
+the last worker node component is 
+kube-proxy
+
+kube proxy is a network proxy that runs
+on each worker node in your cluster
+implementing part of the kubernetes
+service concept when a request is
+received for your application it make
+sure to forward your request to the
+appropriate part
+
+the control plane is in constant contact
+with your computing missions or worker
+nodes to make sure your cluster is
+running based on the configuration you
+have provided and data plane takes care
+of running your application
+
+so let's summarize the kubernetes
+architecture with an example---
+
+let's say we want to create two
+
+instances of an application
+first we give that configuration or spec
+in a document
+once the spec is ready we send it to the
+api server directly or through cli
+the api then runs the spec by the
+scheduler the scheduler selects the
+worker node to which new node should be
+assigned based on the configuration and
+resource availability
+
+at the same time the master server also
+stores the configuration and status data
+to etcd which is a key value store
+
+once the scheduler assigns a worker node
+the controller manager on the master
+node then sends an object spec to the
+node via kubernetes api so it can create
+the desired object
+
+upon receiving the object spec the
+kubelet on the node ensures the objects
+are created accordingly
+whenever the status of the part is
+changed like pod is killed the kubelet
+via api updates the etcd on master with
+the object status
+this is the actual or current state of
+the pod
+
+the watch functionality of etcd monitors
+the changes to the desired state and
+actual state
+
+if the desired state and actual state do
+not match then the control loop runs by
+the controller manager responds to these
+discrepancies and work towards the
+actual state of the object
+
+for example we wanted two pods for any
+reason if a pod goes down the current
+number of parts will be one
+as number of pods we wanted is not
+equal to current number of parts
+
+controller will try to make sure the
+current number of parts are running will
+be two
+
+once our application is deployed when we
+want to make a request to our
+application
+
+kube proxy takes our request and forwards
+our request to corresponding pods
+

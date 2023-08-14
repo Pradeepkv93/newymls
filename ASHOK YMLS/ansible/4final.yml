@@ -1,0 +1,149 @@
+# ansible-playbook <playbook-file.yml> --syntax-check
+# ansible-playbook <playbook-file.yml> --list-hosts
+# ansible-playbook <playbook-file.yml> --check
+# ansible-playbook <playbook-file.yml> --step
+# ansible-playbook <playbook-file.yml>
+# ansible-playbook <playbook-file.yml> -v
+
+
+
+# write a playbook to ping all host nodes
+---
+- hosts: all
+  tasks:
+    - name: Ping all Host Nodes
+      ping:
+      remote_user: ansible 
+
+# write a playbook to create a file in all host nodes
+
+---
+- hosts: all
+  tasks:
+    - name: Create file in all host Nodes
+      file:
+        path: /home/ansible/hello.txt
+        state: touch
+
+# write a  playbook to copy a content into a file
+
+---
+- hosts: all
+  tasks:
+    - name: Copy content to a file
+      copy: content="hello world \n" dest=/home/ansible/hello.txt
+
+# write a  playbook to install httpd package in all host nodes
+
+
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: install httpd package
+      yum:
+        name: httpd
+        state: latest
+        
+# write a  playbook to install httpd package in all host nodes and to start a service        
+
+---
+- hosts: all
+  become: true
+  tasks:
+    - name: install httpd package
+      yum:
+        name: httpd
+        state: latest
+    - name: start htpd server 
+      service: 
+        name: httpd
+        state: started
+
+
+# write a  playbook to install httpd package in all host nodes , copy index.html , & to start httpd service        
+
+
+- hosts: all
+  become: true
+  tasks:
+    - name: install httpd package
+      yum:
+        name: httpd
+        state: latest
+    - name: Copy index.html file
+      copy: 
+        src: index.html
+        dest: /var/www/html/index.html
+    - name: start httpd service
+      service: 
+        name: httpd
+        state: started
+   
+
+
+# write a  playbook to install httpd package in all host nodes , copy index.html , & to start httpd service        
+# variables demo
+# ansible-playbook vardemo.yml --extra-vars package_name=httpd
+- hosts: all
+  become: true
+  tasks:
+    - name: install httpd package
+      yum:
+        name: "{{package_name}}"
+        state: latest
+    - name: Copy index.html file
+      copy: 
+        src: index.html
+        dest: /var/www/html/index.html
+    - name: start httpd service
+      service: 
+        name: "{{package_name}}"
+        state: started
+   
+# variables_demo (2nd method)
+# declaring variable within playbook
+- hosts: all
+  become: true
+  vars:
+    package_name: httpd
+  tasks:
+    - name: install httpd package
+      yum:
+        name: "{{package_name}}"
+        state: latest
+    - name: Copy index.html file
+      copy: 
+        src: index.html
+        dest: /var/www/html/index.html
+    - name: start httpd service
+      service: 
+        name: "{{package_name}}"
+        state: started
+   
+
+---
+
+# write a playbook to install git client
+---
+- hosts: all
+  become: true
+  vars:
+    git_version: 2.16
+  tasks:
+    - name: install git client
+      yum:
+        name: git
+        version: "{{git_version:}}"
+        state: present
+
+# write a playbook to install git client
+---
+- hosts: all
+  become: true
+    tasks:
+    - name: install git client
+      yum:
+        name: git
+        version: "{{version}}"
+        state: present

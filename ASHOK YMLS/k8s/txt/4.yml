@@ -1,0 +1,123 @@
+
+in this chapter we will be discussing
+how we can achieve self healing high
+availability roll out and roll back in
+kubernetes 
+
+in the previous chapter of the series we
+created a pod
+what happens if the part goes down
+users cannot access our application
+but in production we must make sure our
+application is highly available
+to achieve this we should create
+multiple instances of our application
+instead of relying on a single instance
+in that case
+even if one instance goes down the other
+part can still solve the request
+these instances are called replicas in
+kubernetes
+
+each instance is a pod
+if we create multiple pods manually it
+can be time consuming and tedious
+instead of creating these replicas
+manually we can automate creating these
+replicas with the replicaset object in
+kubernetes
+also when the pod goes down
+automatically bringing it back is called
+self-healing
+
+when we ask replicaset to create two
+replicas it make sure that two replicas
+are available all the time
+if any replica goes down it will create
+
+a new replica immediately
+if an extra replica is created it will
+delete a new replica
+
+perfect now we have multiple instances
+of our application running on a node
+what if this node goes down
+again the same problem users cannot
+access our application
+
+to make our application available we
+should bring all these pods onto a
+healthy node
+
+the same replica set can do that job for
+us
+
+replicaset.yaml
+
+apiVersion: apps/v1
+kind: ReplicaSet
+metadata:
+  name: nginx-replicaset
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      name: nginx-pod
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx-container
+          image: nginx:latest
+          ports:
+            - containerPort: 80
+
+
+
+
+
+
+
+
+we learn that labels are useful to
+filter the pods these labels play a very
+important role in the deployments too
+
+let's say we have hundreds of pots
+how does replicas it know what pods it
+should manage
+
+so in our replica set we should give
+what labels the replica set to match
+we give that with
+matchlabels
+and app as nginx
+
+nginx-deployment.yaml
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: nginx-deployment
+  namespace: nginx
+  annotations:
+    kubernetes.io/change-cause: "Updating to alipine version"
+spec:
+  replicas: 4
+  selector:
+    matchLabels:
+      app: nginx
+  template:
+    metadata:
+      name: nginx-pod
+      labels:
+        app: nginx
+    spec:
+      containers:
+        - name: nginx-container
+          image: nginx:alpine
+          ports:
+            - containerPort: 80

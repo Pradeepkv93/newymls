@@ -1,0 +1,56 @@
+pipeline{
+    agent any
+    tools{
+        maven 'maven3.9'
+    }
+    stages{
+       stage('Git Checkout'){
+        steps{
+            git url:'https://github.com/Pradeepkv93/chinna-app.git',branch:'main'
+        }
+       } 
+       stage('Build Maven Application '){
+        steps{
+            sh 'mvn clean package'
+        }
+       } 
+       stage('Generate sonarqube-analysis'){
+        steps{
+            withSonarQubeEnv(installationName: 'sonarqube-8', credentialsId: 'jenkins-sonar-token'){
+            sh 'mvn sonar:sonar'
+            }
+        }
+       } 
+       stage('Upload War file to Nexus'){
+            steps{
+            nexusArtifactUploader artifacts: [
+                [
+                    artifactId: 'hiring',
+                    classifier: '',
+                    file: 'target/hiring.war',
+                    type: 'war'
+                    ]
+            ],
+                credentialsId: 'nexus-credentials',
+                groupId: 'in.javahome',
+                nexusUrl: '15.206.174.101:8081',
+                nexusVersion: 'nexus3',
+                protocol: 'http',
+                repository: 'chinna-app',
+                version: '0.1'
+            }
+       } 
+       stage('Deploy War file to Tommcat'){
+            steps{
+               sshagent(['tomcat-credentials']) {
+                  sh """
+                    scp -o StrictHostKeyChecking=no target/*.war ubuntu@13.232.132.190:/opt/tomcat9/webapps
+                    ssh -o StrictHostKeyChecking=no ubuntu@13.232.132.190 /opt/tomcat9/bin/shutdown.sh
+                    ssh -o StrictHostKeyChecking=no ubuntu@13.232.132.190 /opt/tomcat9/bin/startup.sh
+					
+		          """          
+               }
+            } 
+       }          
+    }
+}
